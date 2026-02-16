@@ -6,9 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    # каждую среду в 12:30 (UTC)
     - cron: '30 12 * * 3'
-    # каждую пятницу в 22:00 (UTC)
     - cron: '0 22 * * 5'
 
 permissions:
@@ -17,7 +15,7 @@ permissions:
 jobs:
   build:
     strategy:
-      fail-fast: false
+      fail-fast: false # Чтобы падение одной версии не отменяло остальные
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         java: [11, 13, 17]
@@ -32,11 +30,18 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'temurin'
+          # Меняем temurin на zulu, так как у zulu есть поддержка Java 13
+          distribution: 'zulu'
+
+      - name: Setup Gradle
+        # Этот экшен сам подстроит окружение под версию Java
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for Gradle Wrapper
         if: runner.os != 'Windows'
         run: chmod +x gradlew
 
       - name: Build with Gradle Wrapper
+        # Если Java 17 всё равно будет падать из-за Gradle 7.1,
+        # то хотя бы 11 и 13 должны пройти
         run: ./gradlew build
