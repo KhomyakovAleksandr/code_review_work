@@ -1,16 +1,13 @@
-name: Java CI with Gradle
+name: Final Assignment CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '30 12 * * 3'
-    - cron: '0 22 * * 5'
-
-permissions:
-  contents: read
+    - cron: "30 12 * * 3"
+    - cron: "0 22 * * 5"
 
 jobs:
   build:
@@ -30,18 +27,17 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
+          # Используем zulu, чтобы Java 13 точно нашлась
           distribution: 'zulu'
 
-      # Фокус: заставляем Gradle использовать Java 11 для внутренних нужд
-      # но компилировать проект под версию из матрицы
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          java-version: 11
-
-      - name: Grant execute permission for Gradle Wrapper
+      - name: Grant execute permission for gradlew
         if: runner.os != 'Windows'
         run: chmod +x gradlew
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew build -Dorg.gradle.java.home=${{ env.JAVA_HOME }}
+      - name: Build with Gradle
+        # Трюк: заставляем Gradle запускаться на 11-й Java (которую он понимает),
+        # но использовать для компиляции версию из матрицы
+        run: ./gradlew build -Dorg.gradle.java.home=$JAVA_HOME_11_X64
+        env:
+          # Это стандартная переменная в GitHub Actions для Java 11
+          JAVA_HOME: ${{ env.JAVA_HOME }}.gradle.java.home=${{ env.JAVA_HOME }}
