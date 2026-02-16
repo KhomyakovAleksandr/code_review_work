@@ -1,4 +1,4 @@
-name: Assignment 3 - Multi-platform Matrix CI
+name: Assignment 3 - Matrix Build
 
 on:
   push:
@@ -12,10 +12,11 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-      
         os: [ubuntu-latest, macos-latest, windows-latest]
-        java-version: [11, 13, 17]
+        # Заменили 13 на 21, чтобы не было ошибки "Could not find satisfied version"
+        java: [11, 17, 21]
 
     runs-on: ${{ matrix.os }}
 
@@ -23,17 +24,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up Java ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java-version }}
+          java-version: ${{ matrix.java }}
           distribution: 'temurin'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build with Gradle
-        run: ./gradlew build
-
-      - name: Run tests
-        run: ./gradlew test
+      - name: Build and Test
+        # Используем универсальную команду
+        run: ./gradlew build test
