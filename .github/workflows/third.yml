@@ -1,4 +1,5 @@
-name: Assignment 2 - Scheduled CI/CD
+name: Assignment 3 - Multi-platform Matrix CI
+
 on:
   push:
     branches: ["main"]
@@ -10,16 +11,22 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Задание 3: Матрица ОС и версий Java
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        java-version: [11, 13, 17]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
 
       - name: Setup Gradle
