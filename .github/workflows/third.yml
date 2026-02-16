@@ -9,10 +9,13 @@ on:
     - cron: '30 12 * * 3'
     - cron: '0 22 * * 5'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     strategy:
-      fail-fast: false # Чтобы лаги GitHub на одной ОС не убивали остальные
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         java: [11, 13, 17]
@@ -23,24 +26,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Устанавливаем нужную Java из матрицы
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'zulu' # Zulu стабильнее для старых версий (13)
-
-      # Устанавливаем Gradle через официальный экшен БЕЗ кэширования (чтобы не было ошибки 400)
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-disabled: true # ОТКЛЮЧАЕМ кэш, так как он у GitHub сейчас сбоит
+          distribution: 'zulu' # Это решит проблему с поиском версий 13 и 17
 
       - name: Grant execute permission for gradlew
         if: runner.os != 'Windows'
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        # Прямо указываем Gradle использовать Java 11 для запуска самого себя,
-        # но собирать проект версией из матрицы. Это уберет ошибку "Unsupported version"
-        run: ./gradlew build -Dorg.gradle.java.home=${{ env.JAVA_HOME }}
+      - name: Build with Gradle Wrapper
+        # Используем встроенную переменную JAVA_HOME, которую выставил setup-java
+        run: ./gradlew build
